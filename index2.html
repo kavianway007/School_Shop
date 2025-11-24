@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>School Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root { --primary: #1a1d2a; --accent: #0a79df; --bg: #222; --card: #32334a; --text: #f7f7f7;}
+        body { margin: 0; font-family: 'Segoe UI', Arial; background: var(--bg); color: var(--text);}
+        header { background: var(--primary); padding: 18px;}
+        header h1 { margin: 0; letter-spacing: 1px;}
+        .container { max-width: 900px; margin: auto;}
+        .products { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;}
+        .card { background: var(--card); border-radius: 9px; box-shadow: 0 2px 8px #0002; padding: 20px; width: 220px; display: flex; flex-direction: column; align-items: center;}
+        .card img { width: 120px; height: 120px; border-radius: 9px; margin-bottom: 10px;}
+        .card h3 { margin: 8px 0 2px;}
+        .card p { margin: 3px 0 14px;}
+        .cart-btn { background: var(--accent); color: #fff; border: none; padding: 8px 20px; border-radius: 4px; font-size: 16px; cursor: pointer;}
+        .cart-btn:active { opacity:0.85;}
+        #cart, #orderForm, #successMsg { background: var(--primary); color: var(--text); border-radius: 7px; padding: 18px 22px; margin: 18px auto; max-width: 360px; }
+        #cart ul { padding-left: 15px;}
+        #cart-toggle { background: none; color: var(--accent); border: none; cursor: pointer; font-size: 15px;}
+        #orderForm input, #orderForm select { width: 97%; margin-bottom: 11px; padding:7px; border-radius:4px; font-size:16px; border:none; }
+        #orderForm label { font-weight:bold; font-size:15px; display:block; margin-top:9px;}
+        #orderForm button {background:var(--accent); color:#fff; border:none; padding:9px 24px; border-radius:5px; font-size:16px; cursor:pointer;}
+        #successMsg h2 { margin-top:0; color: #74ff74;}
+        footer { background:var(--primary); color:#fff; padding:10px;}
+        @media (max-width: 600px) { .products{flex-direction:column;align-items:center;} .card{width:90vw;} }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>School Products Shop</h1>
+        <button id="cart-toggle">Show Cart</button>
+    </header>
+    <div class="container">
+        <h2>Shop Products</h2>
+        <div class="products" id="products">
+            <!-- Product cards -->
+        </div>
+        <div id="cart" style="display:none;">
+            <h3>Your Cart</h3>
+            <ul id="cart-list"></ul>
+            <p id="cart-total"></p>
+            <button onclick="showOrderForm()" id="placeOrderBtn">Place Order</button>
+        </div>
+        <form id="orderForm" style="display:none;" onsubmit="placeOrder(event)">
+            <h3>Student Details</h3>
+            <label>Name</label>
+            <input type="text" id="studentName" required>
+            <label>Class</label>
+            <select id="studentClass" required>
+                <option value="">Select Class</option>
+                <option value="11">Class 11</option>
+                <option value="12">Class 12</option>
+            </select>
+            <label>Roll Number</label>
+            <input type="text" id="studentRoll" required>
+              <label>Student Stream</label>
+            <input type="text" id="studentStram" required>
+             <label>Address</label>
+            <input type="text" id="studentaddres" required>
+            <button type="submit">Submit Order</button>
+        </form>
+        <div id="successMsg" style="display:none;">
+            <h2>Order Placed Successfully!</h2>
+            <p>Thank you for your order, <span id="successName"></span>.<br>
+            Confirmation sent to school records.</p>
+        </div>
+    </div>
+    <footer>
+        &copy; 2025 School Shop - All rights reserved.
+    </footer>
+    <script>
+        const products=[
+            {name:'School Uniform', price:600, img: 'image/schooluniform.jpg'},
+            {name:'School Shoes', price:850, img:'image/schoolshoe.jpg'},
+            {name:'School Bag', price:600, img:'image/schoolbag.jpg'},
+            {name:'School Tie', price:60, img:'image/schooltie.jpg'},
+            {name:'School Cap', price:50, img:'image/schoolcap.jpg'},
+            {name:'Notebook Set', price:120, img:'image/schoolnotebook.jpg'}
+        ];
+        const cart=[];
+        const productsDiv=document.getElementById('products');
+        function renderProducts(){
+            productsDiv.innerHTML='';
+            products.forEach((p,i)=>{
+                productsDiv.innerHTML+=`
+                    <div class="card">
+                        <img src="${p.img}" alt="${p.name}">
+                        <h3>${p.name}</h3>
+                        <p>₹${p.price}</p>
+                        <button class="cart-btn" onclick="addToCart(${i})">Add to Cart</button>
+                    </div>
+                `;
+            });
+        }
+        function addToCart(idx){
+            let item=products[idx];
+            let found=cart.find(x=>x.name===item.name);
+            if(found){ found.qty++; }
+            else{ cart.push({...item,qty:1}); }
+            showCart();
+        }
+        function showCart(){
+            let cdiv=document.getElementById('cart');
+            let clist=document.getElementById('cart-list');
+            let ctotal=document.getElementById('cart-total');
+            if(cart.length===0){
+                clist.innerHTML='<li>No products in cart.</li>';ctotal.innerText='';
+                document.getElementById('placeOrderBtn').style.display='none';
+            }else{
+                clist.innerHTML='';
+                let total=0;
+                cart.forEach(item=>{
+                    clist.innerHTML+=`<li>${item.name} x ${item.qty} (₹${item.price*item.qty})</li>`;
+                    total+=item.price*item.qty;
+                });
+                ctotal.innerText='Total: ₹'+total;
+                document.getElementById('placeOrderBtn').style.display='inline-block';
+            }
+        }
+        function showOrderForm(){
+            document.getElementById('cart').style.display='none';
+            document.getElementById('orderForm').style.display='block';
+        }
+        function placeOrder(e){
+            e.preventDefault();
+            let name=document.getElementById('studentName').value;
+            let cls=document.getElementById('studentClass').value;
+            let roll=document.getElementById('studentRoll').value;
+            if(name && cls && roll){
+                document.getElementById('orderForm').style.display='none';
+                document.getElementById('successMsg').style.display='block';
+                document.getElementById('successName').textContent=name;
+                cart.length=0; // Clear cart
+            }
+        }
+        renderProducts();
+        document.getElementById('cart-toggle').onclick=function(){
+            let cdiv=document.getElementById('cart');
+            cdiv.style.display=(cdiv.style.display==='none')?'block':'none';
+            document.getElementById('orderForm').style.display='none';
+            document.getElementById('successMsg').style.display='none';
+            showCart();
+        };
+    </script>
+</body>
+</html>
